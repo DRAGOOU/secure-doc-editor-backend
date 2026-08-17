@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Register</title>
+        <style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: #020617;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(56,189,248,0.3);
+    text-align: center;
+    width: 300px;
+}
+
+h2 {
+    color: #38bdf8;
+}
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: white;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #38bdf8;
+}
+
+a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+</style>
+    </head>
+    <body>
+        <div class="container">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Username" required>
+            <br><br>
+
+            <input type="password" id="password" placeholder="Password" required>
+            <br><br>
+
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account?<a href="index.html">Login</a></p>
+        <script>
+            document.getElementById("registerForm").addEventListener("submit",async function(e)
+        {
+            e.preventDefault();
+            const name=document.getElementById("name").value.trim();
+            const password=document.getElementById("password").value;
+            if (password.length < 6) {
+            alert("Password must be at least 6 characters");
+            return;
+            }
+            const res=await fetch("http://localhost:5000/user",
+                {
+                 method:"POST",
+                 headers:{
+                    "Content-Type":"application/json"
+                 },
+                 body:JSON.stringify({name:name,password:password})   
+                });
+                const data=await res.text();
+                if(res.ok)
+                {
+                    alert("Registration successful");
+                    window.location.href="index.html";
+                }
+                else
+                {
+                    alert(data);
+                }
+        });
+        </script>
+        </div>
+    </body>
+</html>

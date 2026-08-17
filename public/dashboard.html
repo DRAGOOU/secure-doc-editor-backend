@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: #e2e8f0;
+}
+
+h2 {
+    text-align: center;
+    padding: 20px;
+    color: #38bdf8;
+    letter-spacing: 1px;
+}
+
+.top-bar {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #38bdf8;
+}
+
+#documents {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.doc {
+    background: #020617;
+    border: 1px solid #334155;
+    margin: 15px;
+    padding: 20px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    transition: 0.3s;
+}
+
+.doc:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px #38bdf8;
+}
+
+.doc h3 {
+    margin-bottom: 10px;
+}
+</style>
+</head>    
+
+<body>
+
+<h2>Dashboard</h2>
+
+<div class="top-bar">
+    <button onclick="createDocument()">➕ New Document</button>
+    <button onclick="logout()">🚪 Logout</button>
+</div>
+
+<div id="documents"></div>
+
+<script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "index.html";
+}
+
+/* ================= LOAD DOCUMENTS ================= */
+async function loadDocuments() {
+    const res = await fetch("http://localhost:5000/documents", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const docs = await res.json();
+
+    const container = document.getElementById("documents");
+    container.innerHTML = "";
+
+    docs.forEach(doc => {
+        const div = document.createElement("div");
+        div.className = "doc";
+
+        div.innerHTML = `
+            <h3>${doc.title}</h3>
+            <button onclick="openDocument('${doc._id}')">Open</button>
+            <button onclick="deleteDocument('${doc._id}')">Delete</button>
+            <button onclick="shareDocument('${doc._id}')">Share</button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+/* ================= CREATE DOCUMENT ================= */
+async function createDocument() {
+    const title = prompt("Enter document title:");
+    if (!title) return;
+
+    const res = await fetch("http://localhost:5000/document", {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ title })
+    });
+
+    if (res.ok) {
+        alert("Document created");
+        loadDocuments();
+    } else {
+        const text = await res.text();
+        alert(text);
+    }
+}
+
+/* ================= DELETE DOCUMENT ================= */
+async function deleteDocument(id) {
+    const res = await fetch(`http://localhost:5000/document/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await res.json();
+    alert(data.message);
+    loadDocuments();
+}
+
+/* ================= SHARE DOCUMENT ================= */
+async function shareDocument(id) {
+    try {
+        const res = await fetch(`http://localhost:5000/document/${id}/share`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json(); // ✅ IMPORTANT
+
+        if (res.ok) {
+            prompt("Copy this link:", data.link);
+        } else {
+            alert(data.message);
+        }
+
+    } catch (err) {
+        console.log(err);
+        alert("Error generating link");
+    }
+}
+
+/* ================= NAVIGATION ================= */
+function openDocument(id) {
+    window.location.href = "editor.html?id=" + id;
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+}
+
+/* ================= INIT ================= */
+loadDocuments();
+</script>
+
+</body>
+</html>
