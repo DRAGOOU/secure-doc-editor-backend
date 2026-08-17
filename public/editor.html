@@ -90,7 +90,7 @@ async function init() {
     // 🔹 STEP 1: Load shared document if exists
     if (shareToken) {
         try {
-            const res = await fetch(`http://localhost:5000/share/${shareToken}`);
+            const res = await fetch(`/share/${shareToken}`);
 
             if (!res.ok) {
                 alert("Invalid or expired link");

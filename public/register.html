@@ -82,7 +82,7 @@ a {
             alert("Password must be at least 6 characters");
             return;
             }
-            const res=await fetch("http://localhost:5000/user",
+            const res=await fetch("/user",
                 {
                  method:"POST",
                  headers:{
