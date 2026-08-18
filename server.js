@@ -21,9 +21,36 @@ app.use(cors());
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
-mongoose.connect(process.env.MONGO_URL, { serverSelectionTimeoutMS: 10000 })
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.log("Connection failed : " + err));
+let mongoPromise;
+
+async function connectDB() {
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+
+    if (!mongoPromise) {
+        mongoPromise = mongoose.connect(process.env.MONGO_URL, {
+            serverSelectionTimeoutMS: 10000
+        }).then(() => {
+            console.log("Connected to MongoDB");
+        }).catch((err) => {
+            mongoPromise = null;
+            throw err;
+        });
+    }
+
+    await mongoPromise;
+}
+
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.log("MongoDB connection failed:", err);
+        res.status(503).json({ message: "Database unavailable" });
+    }
+});
 
 /* ================== MODELS ================== */
 
